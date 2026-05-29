@@ -68,7 +68,7 @@ int main() {
 
     // DELETE /items/{id}
     drogon::app().registerHandler(
-        "/items/{1}",
+        "/items/{id}",
         [](const drogon::HttpRequestPtr& req, std::function<void (const drogon::HttpResponsePtr &)> &&callback, int id)
         {
             for (auto it = items.begin(); it != items.end(); ++it) {
@@ -95,7 +95,7 @@ int main() {
     drogon::app().registerPostHandlingAdvice([](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp)
     {
         resp->addHeader("Access-Control-Allow-Origin", "*");
-        resp->addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+        resp->addHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
         resp->addHeader("Access-Control-Allow-Headers", "Content-Type");
     });
 
