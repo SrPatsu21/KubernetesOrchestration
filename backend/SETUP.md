@@ -90,5 +90,5 @@ docker build -t backend-api:latest .
 ## 🐳 Rodar Imagem Docker
 
 ```bash
-docker run --detach -p 8080:8080 backend-api:latest
+docker run --detach --name backend-api-c -p 8080:8080 backend-api:latest
 ```

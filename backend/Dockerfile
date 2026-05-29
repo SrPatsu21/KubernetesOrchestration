@@ -40,7 +40,7 @@ RUN mkdir build && cd build && \
 #* RUNTIME
 #* ###################################
 
-FROM ubuntu:24.04-minimal
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 

@@ -92,6 +92,13 @@ int main() {
         {drogon::Delete}
     );
 
+    drogon::app().registerPostHandlingAdvice([](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp)
+    {
+        resp->addHeader("Access-Control-Allow-Origin", "*");
+        resp->addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+        resp->addHeader("Access-Control-Allow-Headers", "Content-Type");
+    });
+
     drogon::app().addListener("0.0.0.0", 8080);
 
     LOG_INFO << "API rodando na porta 8080";
