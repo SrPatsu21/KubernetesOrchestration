@@ -99,6 +99,28 @@ int main() {
         resp->addHeader("Access-Control-Allow-Headers", "Content-Type");
     });
 
+    drogon::app().registerSyncAdvice(
+    [](const drogon::HttpRequestPtr &req)
+        -> drogon::HttpResponsePtr
+    {
+        if (req->method() == drogon::Options)
+        {
+            auto resp = drogon::HttpResponse::newHttpResponse();
+
+            resp->addHeader("Access-Control-Allow-Origin", "*");
+            resp->addHeader("Access-Control-Allow-Methods",
+                            "GET,POST,DELETE,OPTIONS");
+            resp->addHeader("Access-Control-Allow-Headers",
+                            "Content-Type");
+
+            resp->setStatusCode(drogon::k200OK);
+
+            return resp;
+        }
+
+        return {};
+    });
+
     drogon::app().addListener("0.0.0.0", 8080);
 
     LOG_INFO << "API rodando na porta 8080";
