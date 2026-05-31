@@ -8,16 +8,6 @@ const char* db   = std::getenv("DB_NAME");
 const char* user = std::getenv("DB_USER");
 const char* pass = std::getenv("DB_PASSWORD");
 
-struct Item {
-    int id;
-    std::string name;
-};
-
-std::vector<Item> items = {
-    {1, "Notebook"},
-    {2, "Mouse"}
-};
-
 int main() {
     std::string conn =
         "host=" + std::string(host) +
@@ -28,81 +18,146 @@ int main() {
 
     auto dbClient = drogon::orm::DbClient::newPgClient(conn, 4);
 
+    dbClient->execSqlSync(R"(
+        CREATE TABLE IF NOT EXISTS items (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL
+        )
+    )");
+
     // GET /items
     drogon::app().registerHandler(
         "/items",
-        [](const drogon::HttpRequestPtr& req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
-            {
-                Json::Value response;
+        [dbClient](
+            const drogon::HttpRequestPtr& req,
+            std::function<void(const drogon::HttpResponsePtr&)> &&callback)
+        {
+            dbClient->execSqlAsync(
+                "SELECT id, name FROM items ORDER BY id",
 
-                for (const auto& item : items) {
-                    Json::Value obj;
-                    obj["id"] = item.id;
-                    obj["name"] = item.name;
-                    response.append(obj);
-                }
+                [callback](const drogon::orm::Result &result)
+                {
+                    Json::Value response(Json::arrayValue);
 
-                auto resp = drogon::HttpResponse::newHttpJsonResponse(response);
-                callback(resp);
-            },
+                    for (const auto &row : result)
+                    {
+                        Json::Value obj;
+                        obj["id"] = row["id"].as<int>();
+                        obj["name"] = row["name"].as<std::string>();
+
+                        response.append(obj);
+                    }
+
+                    auto resp =
+                        drogon::HttpResponse::newHttpJsonResponse(response);
+
+                    callback(resp);
+                },
+
+                [callback](const drogon::orm::DrogonDbException &e)
+                {
+                    auto resp = drogon::HttpResponse::newHttpResponse();
+
+                    resp->setStatusCode(
+                        drogon::k500InternalServerError);
+
+                    resp->setBody(e.base().what());
+
+                    callback(resp);
+                });
+        },
         {drogon::Get}
     );
 
     // POST /items
     drogon::app().registerHandler(
         "/items",
-        [](const drogon::HttpRequestPtr& req, std::function<void (const drogon::HttpResponsePtr &)> &&callback)
+        [dbClient](
+            const drogon::HttpRequestPtr& req,
+            std::function<void(const drogon::HttpResponsePtr&)> &&callback)
+        {
+            auto json = req->getJsonObject();
+
+            if (!json || !json->isMember("name"))
             {
-                auto json = req->getJsonObject();
+                auto resp = drogon::HttpResponse::newHttpResponse();
 
-                if (!json || !json->isMember("name")) {
-                    auto resp = drogon::HttpResponse::newHttpResponse();
-                    resp->setStatusCode(drogon::k400BadRequest);
-                    resp->setBody("Campo 'name' obrigatório");
-                    callback(resp);
-                    return;
-                }
+                resp->setStatusCode(drogon::k400BadRequest);
+                resp->setBody("Campo 'name' obrigatório");
 
-                Item item;
-                item.id = items.size() + 1;
-                item.name = (*json)["name"].asString();
-
-                items.push_back(item);
-
-                Json::Value response;
-                response["message"] = "Item criado";
-                response["id"] = item.id;
-
-                auto resp = drogon::HttpResponse::newHttpJsonResponse(response);
                 callback(resp);
-            },
+                return;
+            }
+
+            std::string name = (*json)["name"].asString();
+
+            dbClient->execSqlAsync(
+                "INSERT INTO items(name) VALUES($1) RETURNING id",
+                [callback](const drogon::orm::Result &result)
+                {
+                    Json::Value response;
+
+                    response["message"] = "Item criado";
+                    response["id"] = result[0]["id"].as<int>();
+
+                    auto resp =
+                        drogon::HttpResponse::newHttpJsonResponse(response);
+
+                    callback(resp);
+                },
+                [callback](const drogon::orm::DrogonDbException &e)
+                {
+                    auto resp = drogon::HttpResponse::newHttpResponse();
+
+                    resp->setStatusCode(
+                        drogon::k500InternalServerError);
+
+                    resp->setBody(e.base().what());
+
+                    callback(resp);
+                },
+                name);
+        },
         {drogon::Post}
     );
 
     // DELETE /items/{id}
     drogon::app().registerHandler(
         "/items/{id}",
-        [](const drogon::HttpRequestPtr& req,
-        std::function<void (const drogon::HttpResponsePtr &)> &&callback, int id)
-            {
-                for (auto it = items.begin(); it != items.end(); ++it) {
-                    if (it->id == id) {
-                        items.erase(it);
+        [dbClient](
+            const drogon::HttpRequestPtr& req,
+            std::function<void(const drogon::HttpResponsePtr&)> &&callback,
+            int id)
+        {
+            dbClient->execSqlAsync(
+                "DELETE FROM items WHERE id = $1",
 
-                        Json::Value response;
-                        response["message"] = "Item removido";
+                [callback](const drogon::orm::Result &result)
+                {
+                    Json::Value response;
 
-                        auto resp = drogon::HttpResponse::newHttpJsonResponse(response);
-                        callback(resp);
-                        return;
-                    }
-                }
+                    response["message"] = "Item removido";
 
-                auto resp = drogon::HttpResponse::newHttpResponse();
-                resp->setStatusCode(drogon::k404NotFound);
-                resp->setBody("Item não encontrado");
-                callback(resp);
-            },
+                    auto resp =
+                        drogon::HttpResponse::newHttpJsonResponse(response);
+
+                    callback(resp);
+                },
+
+                [callback](const drogon::orm::DrogonDbException &e)
+                {
+                    auto resp = drogon::HttpResponse::newHttpResponse();
+
+                    resp->setStatusCode(
+                        drogon::k500InternalServerError);
+
+                    resp->setBody(e.base().what());
+
+                    callback(resp);
+                },
+
+                id);
+        },
         {drogon::Delete}
     );
 

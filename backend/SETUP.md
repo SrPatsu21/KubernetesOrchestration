@@ -15,6 +15,7 @@ sudo apt install -y \
     uuid-dev \
     zlib1g-dev \
     openssl \
+    libpq-dev \
     libssl-dev
 ```
 
@@ -27,6 +28,7 @@ sudo dnf install -y \
     gcc-c++ \
     jsoncpp-devel \
     libuuid-devel \
+    libpq-dev \
     zlib-devel \
     openssl-devel
 ```

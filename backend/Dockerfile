@@ -15,7 +15,9 @@ RUN apt update && apt install -y \
     uuid-dev \
     zlib1g-dev \
     openssl \
-    libssl-dev
+    libssl-dev \
+    libpq-dev \
+    postgresql-client
 
 # Drogon
 RUN git clone https://github.com/drogonframework/drogon.git && \
@@ -50,6 +52,7 @@ RUN apt update && apt install -y \
     uuid-runtime \
     zlib1g \
     openssl \
+    libpq-dev \
     libssl3 && \
     apt clean
 
