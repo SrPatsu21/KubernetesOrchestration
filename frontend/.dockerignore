@@ -1,2 +1,4 @@
 .gitignore
 *.md
+.env.example
+.env

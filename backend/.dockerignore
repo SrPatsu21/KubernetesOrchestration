@@ -2,3 +2,5 @@ drogon
 build
 .gitignore
 *.md
+.env
+.env.example
