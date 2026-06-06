@@ -62,6 +62,15 @@ kubectl get svc
 
 kubectl get pvc
 
+### Restart deployment
+
+kubectl rollout restart deployment frontend
+kubectl rollout restart deployment backend
+
 ### Stop
 
 docker stop angelcorp-control-plane
+
+### Enable frontend port
+
+kubectl port-forward service/frontend-service 3000:80

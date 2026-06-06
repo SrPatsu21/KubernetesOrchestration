@@ -4,10 +4,8 @@ function App() {
   const [items, setItems] = useState([]);
   const [name, setName] = useState("");
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   async function fetchItems() {
-    const res = await fetch(`${API_URL}/items`);
+    const res = await fetch("/items");
     const data = await res.json();
     setItems(data);
   }
@@ -15,7 +13,7 @@ function App() {
   async function addItem() {
     if (!name) return;
 
-    await fetch(`${API_URL}/items`, {
+    await fetch("/items", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -28,7 +26,7 @@ function App() {
   }
 
   async function deleteItem(id) {
-    await fetch(`${API_URL}/items/${id}`, {
+    await fetch(`/items/${id}`, {
       method: "DELETE",
     });
 

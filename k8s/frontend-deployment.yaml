@@ -20,7 +20,13 @@ spec:
       containers:
         - name: frontend
 
-          image: frontend-react:latest
+          image: angelcorp-frontend:latest
+
+          imagePullPolicy: Never
 
           ports:
             - containerPort: 80
+
+          env:
+            - name: VITE_API_URL
+              value: "http://backend-service:8080"
