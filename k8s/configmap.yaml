@@ -6,4 +6,5 @@ metadata:
 
 data:
   DB_NAME: angelcorp
+  DB_PORT: "5432"
   DB_HOST: postgres-service

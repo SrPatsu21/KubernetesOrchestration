@@ -2,51 +2,55 @@ apiVersion: apps/v1
 kind: Deployment
 
 metadata:
-  name: backend
+  name: postgres
 
 spec:
   replicas: 1
 
   selector:
     matchLabels:
-      app: backend
+      app: postgres
 
   template:
     metadata:
       labels:
-        app: backend
+        app: postgres
 
     spec:
       containers:
-        - name: backend
+        - name: postgres
 
-          image: backend-drogon:latest
+          image: postgres:17
 
           ports:
-            - containerPort: 8080
+            - containerPort: 5432
 
           env:
 
-            - name: DB_HOST
-              value: postgres-service
-
-            - name: DB_PORT
-              value: "5432"
-
-            - name: DB_NAME
+            - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
                   name: angelcorp-config
                   key: DB_NAME
 
-            - name: DB_USER
+            - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_USER
 
-            - name: DB_PASSWORD
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_PASSWORD
+
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+
+      volumes:
+        - name: postgres-storage
+
+          persistentVolumeClaim:
+            claimName: postgres-pvc
