@@ -54,10 +54,14 @@ kubectl apply -f frontend-deployment.yaml
 
 kubectl apply -f frontend-service.yaml
 
-#### 
+#### Test
 
 kubectl get pods
 
 kubectl get svc
 
 kubectl get pvc
+
+### Stop
+
+docker stop angelcorp-control-plane
