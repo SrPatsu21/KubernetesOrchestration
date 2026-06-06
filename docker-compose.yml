@@ -1,24 +1,22 @@
 services:
 
-  frontend:
+  frontend-service:
     build:
       context: ./frontend
-      args:
-        VITE_API_URL: http://localhost:8080
     container_name: frontend
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      - backend-service
 
-  backend:
+  backend-service:
     build:
       context: ./backend
     container_name: backend
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
+      - postgres-service
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -26,7 +24,7 @@ services:
       DB_USER: angel
       DB_PASSWORD: angel123
 
-  postgres:
+  postgres-service:
     image: postgres:17
     container_name: postgres
     restart: always
